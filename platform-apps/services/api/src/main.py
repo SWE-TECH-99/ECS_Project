@@ -7,7 +7,7 @@ from typing import Annotated
 from uuid import uuid4
 
 import boto3
-from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi import Depends, FastAPI, HTTPException, Request, status
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 from sqlalchemy import DateTime, String, create_engine, select
 from sqlalchemy.exc import SQLAlchemyError
@@ -62,6 +62,14 @@ def normalize_database_url(database_url: str) -> str:
 	return database_url
 
 
+def get_db(request: Request):
+	with request.app.state.session_factory() as db:
+		yield db
+
+
+DatabaseSession = Annotated[Session, Depends(get_db)]
+
+
 def create_app(
 	database_url: str | None = None,
 	queue_url: str | None = None,
@@ -86,12 +94,6 @@ def create_app(
 	api.state.session_factory = session_factory
 	api.state.queue_url = queue_url
 	api.state.sqs_client = sqs_client
-
-	def get_db():
-		with session_factory() as db:
-			yield db
-
-	DatabaseSession = Annotated[Session, Depends(get_db)]
 
 	@api.get("/health", tags=["health"])
 	def health(db: DatabaseSession) -> dict[str, str]:
