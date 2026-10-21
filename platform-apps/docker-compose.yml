@@ -1,0 +1,14 @@
+services:
+   frontend:
+    image: frontend:reactfile
+    build: ./services/frontend
+    ports: 
+      - "3000:8080"
+    restart: always
+   api:
+        image: api:fastapi
+        build: ./services/api
+        ports:
+          - "8000:8000" 
+        restart: always
+
