@@ -1,0 +1,6 @@
+tests/
+.gitignore
+requirements-dev.txt
+__pycache__
+.venv/
+
